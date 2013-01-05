@@ -1,4 +1,4 @@
-package com.gmail.namrufus.NutritiousFoods;
+package com.github.jacobcole2000.NutitiousFoods;
 
 import java.util.ArrayList;
 import org.bukkit.entity.Player;

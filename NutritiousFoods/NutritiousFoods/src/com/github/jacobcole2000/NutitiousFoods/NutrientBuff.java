@@ -1,4 +1,4 @@
-package com.gmail.namrufus.NutritiousFoods;
+package com.github.jacobcole2000.NutitiousFoods;
 
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
