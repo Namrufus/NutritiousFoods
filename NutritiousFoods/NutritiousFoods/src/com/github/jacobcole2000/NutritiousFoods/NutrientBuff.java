@@ -1,4 +1,4 @@
-package com.github.jacobcole2000.NutitiousFoods;
+package com.github.jacobcole2000.NutritiousFoods;
 
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
@@ -10,7 +10,7 @@ public class NutrientBuff {
 	private Nutrient nutrient;
 	private PotionEffectType effectType;
 	private boolean moreThan; // if this is true, the effect will be present if the nutrient level is above the cutoff
-	private int cutoff; // the cutoff level of the debuff
+	private float cutoff; // the cutoff level of the debuff
 	// the period of the rate at which the buff is applied at 0 (or max) nutrient level
 	// in seconds/buff (ie the average number of seconds between application of the buff)
 	private float periodMax;
@@ -21,7 +21,7 @@ public class NutrientBuff {
 	// in seconds
 	private float durationMax;
 	
-	NutrientBuff(PotionEffectType effectType, boolean moreThan, int cutoff, float periodMax, int intensityMax, float durationMax, Nutrient nutrient) {
+	NutrientBuff(PotionEffectType effectType, boolean moreThan, float cutoff, float periodMax, int intensityMax, float durationMax, Nutrient nutrient) {
 		this.nutrient = nutrient;
 		this.effectType = effectType;
 		this.moreThan = moreThan;
@@ -67,4 +67,6 @@ public class NutrientBuff {
 		// convert duration to millseconds and return potion effect
 		return new PotionEffect(effectType, (int)(duration*1000), level);
 	}
+	
+
 }

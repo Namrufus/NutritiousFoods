@@ -1,3 +1,8 @@
 name: NutritiousFoods
-main: com.gmail.namrufus.NutritiousFoods.NutritiousFoods
+main: com.github.jacobcole2000.NutritiousFoods.NutritiousFoods
 version: 0.0.1
+
+commands:
+   nfcheck:
+      description: check player nutrition levels
+      usage: /<command> [player]
