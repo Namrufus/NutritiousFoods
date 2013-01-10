@@ -1,0 +1,48 @@
+NutritiousFoods:
+  exists: true
+  effectTickPeriod: 200
+  expectedPlayerCap: 10
+
+  nutrients:
+    Vitamin-A:
+      maxLevel: 128.0
+      maxDecRate: 30.0
+      exponant: 2.0
+      spawnLevel: 32.0
+      foods:
+        CARROT_ITEM: 1.0
+        GOLDEN_CARROT: 3.0
+      effects:
+        e1:
+          effect: BLINDNESS
+          moreThan: false
+          cutoff: 64.0
+          chanceMax: 0.5
+          intensityMax: 2
+          durationMax: 200
+
+        e2:
+          effect: WEAKNESS
+          moreThan: false
+          cutoff: 64.0
+          chanceMax: 1.0
+          intensityMax: 4
+          durationMax: 200
+
+    Vitamin-B:
+      maxLevel: 128.0
+      maxDecRate: 1.0
+      exponant: 2.0
+      spawnLevel: 96
+      foods:
+        BREAD: 3.0
+
+    Vitamin-C:
+      maxLevel: 128.0
+      maxDecRate: 1.0
+      exponant: 2.0
+      spawnLevel: 96
+      foods:
+        POTATO_ITEM: 1.0
+        POISONOUS_POTATO: 10.0
+        BAKED_POTATO: 1.0

@@ -4,6 +4,7 @@ import java.util.ArrayList;
 
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
+import org.bukkit.potion.PotionEffect;
 
 // represents the state of a player's nutrition
 
@@ -39,7 +40,10 @@ public class NutrientPlayer {
 			nutrientLevels[i] = nutrientDefs.get(i).getSpawnLevel();
 	}
 	
-	int updateSatLevel(float newLevel) {
+	// update the stored saturation level
+	// this allows for the nutrition levels to go down with saturation decreases as well
+	// return value is the amount that the sturation decreased.
+	public int updateSatLevel(float newLevel) {
 		// get the amount by which the saturation level has changed
 		float diff = leftoverSatLevel + newLevel - prevSatLevel;
 
@@ -52,6 +56,16 @@ public class NutrientPlayer {
 		int res = (int) diff;
 		leftoverSatLevel = diff-(float)res;
 		return res;
+	}
+	
+	public void applyEffects(Nutrient nutrient) {
+		int index = nutrient.getIndex();
+		ArrayList<NutrientBuff> buffs = nutrient.getBuffs();
+		for (NutrientBuff buff:buffs) {
+			PotionEffect effect = buff.getEffect(nutrientLevels[index]);
+			if (effect != null)
+				effect.apply(player);
+		}
 	}
 	
 	// accesors and mutators

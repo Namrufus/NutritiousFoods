@@ -30,7 +30,7 @@ import org.bukkit.scheduler.BukkitTask;
 
 public final class NutritiousFoods extends JavaPlugin implements Listener {
 	// the time in seconds between effect ticks
-	private float effectTickPeriod;
+	private long effectTickPeriod;
 	// int to keep track of the current 'bucket' of players that will receive a
 	// effect tick the next scheduled event
 	int effectTickBucketIndex;
@@ -65,7 +65,7 @@ public final class NutritiousFoods extends JavaPlugin implements Listener {
 		//}
 		
 		int expectedPlayerCap = this.getConfig().getInt("NutritiousFoods.expectedPlayerCap");
-		effectTickPeriod = (float)this.getConfig().getDouble("NutritiousFoods.effectTickPeriod");
+		effectTickPeriod = this.getConfig().getLong("NutritiousFoods.effectTickPeriod");
 	
 		// load nutrition list from config.yml
 		Set<String> nutrientKeys = this.getConfig().getConfigurationSection("NutritiousFoods.nutrients").getKeys(false);
@@ -122,11 +122,14 @@ public final class NutritiousFoods extends JavaPlugin implements Listener {
 					
 					boolean moreThan = this.getConfig().getBoolean(keyStr2+".moreThan");
 					float cutoff = (float)this.getConfig().getDouble(keyStr2+".cutoff");
-					float periodMax = (float)this.getConfig().getDouble(keyStr2+".periodMax");
+					float chanceMax = (float)this.getConfig().getDouble(keyStr2+".chanceMax");
 					int intensityMax = this.getConfig().getInt(keyStr2+".intensityMax");
-					float durationMax = (float)this.getConfig().getDouble(keyStr2+".durationMax");
+					int durationMax = this.getConfig().getInt(keyStr2+".durationMax");
 					
-					NutrientBuff nutrientBuff = new NutrientBuff(effectType, moreThan, cutoff, periodMax, intensityMax, durationMax, nutrient);
+					
+					
+					NutrientBuff nutrientBuff = new NutrientBuff(effectType, moreThan, cutoff, chanceMax, intensityMax, durationMax, nutrient);
+					getLogger().info(nutrientBuff.toString());
 					nutrient.addBuff(nutrientBuff);
 				}
 			}
@@ -137,7 +140,7 @@ public final class NutritiousFoods extends JavaPlugin implements Listener {
 		effectTickBucketIndex = 0;
 		
 		long ticksPerBucket;
-		long ticksPerPeriod = (long)(effectTickPeriod*20.0);
+		long ticksPerPeriod = effectTickPeriod;
 		// if the max number of players approaches the number of ticks in the period
 		// then go ahead and match the number of buckets to the number of ticks
 		// if the max number of players is much smaller than the number of ticks per period
@@ -179,7 +182,7 @@ public final class NutritiousFoods extends JavaPlugin implements Listener {
 		}
 		
 		//register the potion effect event
-		nutrientEffectTask = this.getServer().getScheduler().runTaskTimerAsynchronously(this, new Runnable() {
+		nutrientEffectTask = this.getServer().getScheduler().runTaskTimer(this, new Runnable() {
 		    @Override  
 		    public void run() {
 		        NutrientEffectEvent();
@@ -201,7 +204,16 @@ public final class NutritiousFoods extends JavaPlugin implements Listener {
 	}
 	
 	public void NutrientEffectEvent() {
+		effectTickBucketIndex++;
+		if (effectTickBucketIndex >= playerBuckets.size())
+			effectTickBucketIndex = 0;
 		
+		for (NutrientPlayer nPlayer: playerBuckets.get(effectTickBucketIndex)) {
+			for (Nutrient nutrient: nutrients) {
+				getLogger().info("applying " + nutrient.getName() + " effects to " + nPlayer.getPlayer().getName());
+				nPlayer.applyEffects(nutrient);
+			}
+		}
 	}
 	
 	@EventHandler

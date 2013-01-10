@@ -1,5 +1,6 @@
 package com.github.jacobcole2000.NutritiousFoods;
 
+import org.bukkit.plugin.Plugin;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 
@@ -11,9 +12,8 @@ public class NutrientBuff {
 	private PotionEffectType effectType;
 	private boolean moreThan; // if this is true, the effect will be present if the nutrient level is above the cutoff
 	private float cutoff; // the cutoff level of the debuff
-	// the period of the rate at which the buff is applied at 0 (or max) nutrient level
-	// in seconds/buff (ie the average number of seconds between application of the buff)
-	private float periodMax;
+	// the chance that this effect will be applied each effectTick at 0 (or max) nutrient level
+	private float chanceMax;
 	// the intensity at which the buff is applied at 0 (or max) nutrient level
 	// in effect levels
 	private int intensityMax;
@@ -21,19 +21,19 @@ public class NutrientBuff {
 	// in seconds
 	private float durationMax;
 	
-	NutrientBuff(PotionEffectType effectType, boolean moreThan, float cutoff, float periodMax, int intensityMax, float durationMax, Nutrient nutrient) {
+	NutrientBuff(PotionEffectType effectType, boolean moreThan, float cutoff, float chanceMax, int intensityMax, float durationMax, Nutrient nutrient) {
 		this.nutrient = nutrient;
 		this.effectType = effectType;
 		this.moreThan = moreThan;
 		this.cutoff = cutoff;
-		this.periodMax = periodMax;
+		this.chanceMax = chanceMax;
 		this.intensityMax = intensityMax;
 		this.durationMax = durationMax;
 	}
 	
 	// get an effect to apply to a player with the specified nutrient level. this is called every effectTick
 	// if there is to be no effect this EffectTick this will return null
-	public PotionEffect getEffect(int nutrientLevel, float effectTickPeriod) {
+	public PotionEffect getEffect(float nutrientLevel) {
 		float duration; // duration in seconds
 		int level; // potion level
 		
@@ -46,27 +46,40 @@ public class NutrientBuff {
 		else
 			magnitude = (float)(cutoff-nutrientLevel)/(float)cutoff;
 		
+		System.out.print("magnitude = " + Float.toString(magnitude));
+		
 		// if the nutrient level is outside the cutoff, return with no effect
-		if (magnitude > 0)
+		if (magnitude < 0.0)
 			return null;
 		
+		System.out.println("hoopa " + Float.toString(magnitude*chanceMax));
 		
-		// this ratio actually should scale based on a poisson distribution expected value (i think)
-		// but whatever, its close enough as long as the the effect tick period is something reasonable (up to a minute or two)
-		float eventsPerTick = effectTickPeriod/periodMax;
 		// frequency depends linearly on magnitude
-		if (Math.random() < magnitude*eventsPerTick)
+		if (Math.random() > magnitude*chanceMax)
 			return null;
+		
+		System.out.println("poopa");
 		
 		// intensity also is linear with magnitude
-		level = 1 + (int)(((float)(1-intensityMax))*magnitude);
+		level = 1 + (int)(((float)(intensityMax-1))*magnitude);
 		
 		// duration is also linear with magnitude
-		duration = durationMax/magnitude;
+		duration = (float)durationMax*magnitude;
+		
+		System.out.println("0_-??? " + effectType.toString() + ", " + Float.toString(duration) + ", " + Integer.toString(level));
 		
 		// convert duration to millseconds and return potion effect
-		return new PotionEffect(effectType, (int)(duration*1000), level);
+		return new PotionEffect(effectType, (int)duration, level);
 	}
 	
+	public String toString() {
+		String str = "[Nutrient Buff: ";
+		str+= "Effect Type = " + effectType.toString() + ", ";
+		str+= "moreThan = " + Boolean.toString(moreThan) + ", ";
+		str+= "chancemax = " + Float.toString(chanceMax) + ", ";
+		str+= "intensitymax = " + Integer.toString(intensityMax) + ", ";
+		str+= "durationmax = " + Integer.toString((int) durationMax) + "]";
+		return str;
+	}
 
 }

@@ -34,6 +34,10 @@ public class Nutrient {
 		nutrientBuffs.add(nutrientBuff);
 	}
 	
+	public ArrayList<NutrientBuff> getBuffs() {
+		return nutrientBuffs;
+	}
+	
 	// accessors/mutators
 	// ***************************** //
 	public float getMaxLevel() {
