@@ -38,13 +38,11 @@ public final class NutritiousFoods extends JavaPlugin implements Listener {
 	int bucketCount;
 	// list of nutrient types
 	ArrayList<Nutrient> nutrients;
-	// players divided into groups for scheduling purpose
-	// spreading out computation over many ticks
-	ArrayList<ArrayList<NutrientPlayer>> playerBuckets;
-	HashMap<String,NutrientPlayer> playerMap;
 	// a task that performs effect ticks
 	BukkitTask nutrientEffectTask;
 	HashMap<Material,NutrientFood> foodMap;
+	
+	PlayerManager playerManager;
 	
 	// --------------------------------------------- //
 	
@@ -143,9 +141,9 @@ public final class NutritiousFoods extends JavaPlugin implements Listener {
 		long ticksPerPeriod = effectTickPeriod;
 		// if the max number of players approaches the number of ticks in the period
 		// then go ahead and match the number of buckets to the number of ticks
-		// if the max number of players is much smaller than the number of ticks per period
+		// if the max number of players is smaller than the number of ticks per period
 		// match the number of ticks closely to the expected number of players
-		if (expectedPlayerCap*3 > ticksPerPeriod) {
+		if (expectedPlayerCap > ticksPerPeriod) {
 			bucketCount = (int)ticksPerPeriod;
 			ticksPerBucket = 1L;
 		}
@@ -160,25 +158,14 @@ public final class NutritiousFoods extends JavaPlugin implements Listener {
 		this.getLogger().info("ticksPerBucket: " + Long.toString(ticksPerBucket));
 		this.getLogger().info("bucketCount: " + Integer.toString(bucketCount));
 		
-		// initialize player buckets
+		// initialize player data
 		Player players[] = getServer().getOnlinePlayers();
-		int playersPerBucket = 2*players.length/bucketCount;
-		playerBuckets = new ArrayList<ArrayList<NutrientPlayer>>(bucketCount);
-		for (int i = 0; i < bucketCount; i++) {
-			playerBuckets.add(new ArrayList<NutrientPlayer>(playersPerBucket));
-		}
-		
-		// initialize playerMap
-		playerMap = new HashMap<String,NutrientPlayer>();
+		playerManager = new PlayerManager("path goes here", bucketCount, this);
+		playerManager.load();
 		
 		// populate player buckets and map with current players
 		for (int i=0; i<players.length; i++) {
-			NutrientPlayer nutrientPlayer = new NutrientPlayer(players[i],this);
-			playerMap.put(players[i].getName(),nutrientPlayer);
-			int bucketIndex = (int)(Math.random()*bucketCount);
-			// TODO search for players using SQL or something
-			// currently resets nutrients at login
-			playerBuckets.get(bucketIndex).add(nutrientPlayer);
+			playerManager.addPlayer(players[i].getName(), players[i]);
 		}
 		
 		//register the potion effect event
@@ -193,22 +180,21 @@ public final class NutritiousFoods extends JavaPlugin implements Listener {
 		getServer().getPluginManager().registerEvents(this, this);
 	}
 	
-	// stop ticks and nullify all references
+	// stop effect tick and nullify all references
 	@Override
 	public void onDisable() {
 		nutrientEffectTask.cancel();
 		
 		nutrients = null;
-		playerBuckets = null;
-		nutrientEffectTask = null;
+		playerManager = null;
 	}
 	
 	public void NutrientEffectEvent() {
 		effectTickBucketIndex++;
-		if (effectTickBucketIndex >= playerBuckets.size())
+		if (effectTickBucketIndex >= playerManager.getBucketCount())
 			effectTickBucketIndex = 0;
 		
-		for (NutrientPlayer nPlayer: playerBuckets.get(effectTickBucketIndex)) {
+		for (NutrientPlayer nPlayer: playerManager.getPlayersInBucket(effectTickBucketIndex)) {
 			for (Nutrient nutrient: nutrients) {
 				getLogger().info("applying " + nutrient.getName() + " effects to " + nPlayer.getPlayer().getName());
 				nPlayer.applyEffects(nutrient);
@@ -226,9 +212,9 @@ public final class NutritiousFoods extends JavaPlugin implements Listener {
 		
 		String playerName = player.getName();
 		
-		if (!playerMap.containsKey(playerName))
+		if (!playerManager.contains(playerName))
 			return;
-		NutrientPlayer nutrientPlayer = playerMap.get(playerName);
+		NutrientPlayer nutrientPlayer = playerManager.get(playerName);
 
 		for (int i=0; i<nutrients.size(); i++) {
 			Nutrient nutrient = nutrients.get(i);
@@ -260,9 +246,9 @@ public final class NutritiousFoods extends JavaPlugin implements Listener {
 	
 	// update saturation levels
 	public void saturationChange(String playerName) {
-		if (!playerMap.containsKey(playerName))
+		if (!playerManager.contains(playerName))
 			return;
-		NutrientPlayer nPlayer = playerMap.get(playerName);
+		NutrientPlayer nPlayer = playerManager.get(playerName);
 		int satLevelsLost = nPlayer.updateSatLevel(nPlayer.getPlayer().getSaturation());
 		getLogger().info("sat level = " + Float.toString(nPlayer.getPlayer().getSaturation()));
 		getLogger().info(Integer.toString(satLevelsLost) + " sat levels lost");
@@ -277,23 +263,9 @@ public final class NutritiousFoods extends JavaPlugin implements Listener {
 		if (event.getAction() == Action.RIGHT_CLICK_AIR || event.getAction() == Action.RIGHT_CLICK_BLOCK) {
 			// set the last interacted material to the held item
 			// maybe food, maybe not, who knows
-			NutrientPlayer nPlayer = playerMap.get(event.getPlayer().getName());
+			NutrientPlayer nPlayer = playerManager.get(event.getPlayer().getName());
 			nPlayer.setLastInteractMaterial(event.getPlayer().getItemInHand().getType());
 		}
-	}
-	
-	private void removePlayer(Player player) {
-		for (ArrayList<NutrientPlayer> playerBucket:playerBuckets) {
-			if (!playerBucket.contains(player))
-				continue;
-			//TODO save data to database
-			playerBucket.remove(player);
-		}
-		playerMap.remove(player.getName());
-	}
-	
-	private void backupPlayer(Player player) {
-		//TODO.... everything
 	}
 	
 	@EventHandler
@@ -301,15 +273,12 @@ public final class NutritiousFoods extends JavaPlugin implements Listener {
 		System.out.println("player added.");
 		//TODO search for nutrient data in a database
 		
-		NutrientPlayer nutrientPlayer = new NutrientPlayer(event.getPlayer(),this);
-		playerMap.put(event.getPlayer().getName(), nutrientPlayer);
-		int bucketIndex = (int)(Math.random()*bucketCount);
-		playerBuckets.get(bucketIndex).add(nutrientPlayer);
+		playerManager.addPlayer(event.getPlayer().getName(), event.getPlayer());
 	}
 	
 	@EventHandler
 	public void onPlayerQuit(PlayerQuitEvent event) {
-		removePlayer(event.getPlayer());
+		playerManager.removePlayer(event.getPlayer());
 	}
 	
 	public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args){
@@ -319,7 +288,7 @@ public final class NutritiousFoods extends JavaPlugin implements Listener {
 				return false;
 			}
 			
-			NutrientPlayer nutrientPlayer = playerMap.get(sender.getName());
+			NutrientPlayer nutrientPlayer = playerManager.get(sender.getName());
 			
 			sender.sendMessage("NutritiousFoods Nutrient List:");
 			for (int i=0; i<nutrients.size(); i++) {
