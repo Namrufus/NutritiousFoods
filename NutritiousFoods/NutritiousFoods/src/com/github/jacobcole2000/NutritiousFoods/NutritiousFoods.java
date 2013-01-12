@@ -102,7 +102,6 @@ public final class NutritiousFoods extends JavaPlugin implements Listener {
 						foodMap.put(material, nFood);
 					}
 					nFood.addNutrient(nutrient, amount);
-					this.getLogger().info(material.name() + " replenishes "+Float.toString(amount)+" "+nutrient.getName());
 				}
 			}
 			
@@ -127,13 +126,10 @@ public final class NutritiousFoods extends JavaPlugin implements Listener {
 					
 					
 					NutrientBuff nutrientBuff = new NutrientBuff(effectType, moreThan, cutoff, chanceMax, intensityMax, durationMax, nutrient);
-					getLogger().info(nutrientBuff.toString());
 					nutrient.addBuff(nutrientBuff);
 				}
 			}
 		}
-		
-		getLogger().info(nutrients.toString());
 		
 		effectTickBucketIndex = 0;
 		
@@ -153,14 +149,9 @@ public final class NutritiousFoods extends JavaPlugin implements Listener {
 			bucketCount = Math.round((float)ticksPerPeriod/(float)ticksPerBucket);
 		}
 		
-		this.getLogger().info("effectTickPeriod: " + Float.toString(effectTickPeriod));
-		this.getLogger().info("expectedPlayerCap: " + Integer.toString(expectedPlayerCap));
-		this.getLogger().info("ticksPerBucket: " + Long.toString(ticksPerBucket));
-		this.getLogger().info("bucketCount: " + Integer.toString(bucketCount));
-		
 		// initialize player data
 		Player players[] = getServer().getOnlinePlayers();
-		playerManager = new PlayerManager("path goes here", bucketCount, this);
+		playerManager = new PlayerManager("playerdata.txt", bucketCount, this);
 		playerManager.load();
 		
 		// populate player buckets and map with current players
@@ -181,8 +172,11 @@ public final class NutritiousFoods extends JavaPlugin implements Listener {
 	}
 	
 	// stop effect tick and nullify all references
+	// also save player data
 	@Override
 	public void onDisable() {
+		playerManager.save();
+		
 		nutrientEffectTask.cancel();
 		
 		nutrients = null;
@@ -196,7 +190,6 @@ public final class NutritiousFoods extends JavaPlugin implements Listener {
 		
 		for (NutrientPlayer nPlayer: playerManager.getPlayersInBucket(effectTickBucketIndex)) {
 			for (Nutrient nutrient: nutrients) {
-				getLogger().info("applying " + nutrient.getName() + " effects to " + nPlayer.getPlayer().getName());
 				nPlayer.applyEffects(nutrient);
 			}
 		}
@@ -221,16 +214,10 @@ public final class NutritiousFoods extends JavaPlugin implements Listener {
 			nutrientPlayer.decNutrientLevel(i,nutrient);
 		}
 		
-		this.getLogger().info(player.getName() + " ate a " + nutrientPlayer.getLastInteractMaterial());
 		// if the thing eaten is a valid material, add any nutrient amounts
 		if (foodMap.containsKey(nutrientPlayer.getLastInteractMaterial())) {
-			this.getLogger().info("and that's a registered food!");
 			foodMap.get(nutrientPlayer.getLastInteractMaterial()).addToNutrients(nutrientPlayer);
 		}
-		
-		getLogger().info(playerName + " food drop event.");
-		getLogger().info("event food level = " + Float.toString(event.getFoodLevel()));
-		getLogger().info("player food level = " + Float.toString(player.getFoodLevel()));
 
 		// run a task next tick to handle saturation changes
 		// possible collision if a exhaustion event happens at the
@@ -249,9 +236,15 @@ public final class NutritiousFoods extends JavaPlugin implements Listener {
 		if (!playerManager.contains(playerName))
 			return;
 		NutrientPlayer nPlayer = playerManager.get(playerName);
-		int satLevelsLost = nPlayer.updateSatLevel(nPlayer.getPlayer().getSaturation());
-		getLogger().info("sat level = " + Float.toString(nPlayer.getPlayer().getSaturation()));
-		getLogger().info(Integer.toString(satLevelsLost) + " sat levels lost");
+		int satLevelsLost = -nPlayer.updateSatLevel(nPlayer.getPlayer().getSaturation());
+		if (satLevelsLost <= 0)
+			return;
+		
+		for (int i = 0; i < satLevelsLost; i++) {
+			for (int j = 0; j<nutrients.size(); j++) {
+				nPlayer.decNutrientLevel(j, nutrients.get(j));
+			}
+		}
 	}
 	
 	// catch the type of food the player is eating
@@ -271,8 +264,6 @@ public final class NutritiousFoods extends JavaPlugin implements Listener {
 	@EventHandler
 	public void onPlayerJoin(PlayerJoinEvent event) {
 		System.out.println("player added.");
-		//TODO search for nutrient data in a database
-		
 		playerManager.addPlayer(event.getPlayer().getName(), event.getPlayer());
 	}
 	
@@ -281,8 +272,16 @@ public final class NutritiousFoods extends JavaPlugin implements Listener {
 		playerManager.removePlayer(event.getPlayer());
 	}
 	
+	public Nutrient getNutrientByName(String name) {
+		for (Nutrient nutrient:nutrients) {
+			if (nutrient.getName().equals(name))
+				return nutrient;
+		}
+		return null;
+	}
+	
 	public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args){
-		if(cmd.getName().equalsIgnoreCase("nfcheck")){ // If the player typed /basic then do the following...
+		if(cmd.getName().equalsIgnoreCase("nfcheck") || cmd.getName().equalsIgnoreCase("nfc")){
 			if (! (sender instanceof Player)) {
 				sender.sendMessage("This is a player command.");
 				return false;
@@ -290,11 +289,13 @@ public final class NutritiousFoods extends JavaPlugin implements Listener {
 			
 			NutrientPlayer nutrientPlayer = playerManager.get(sender.getName());
 			
-			sender.sendMessage("NutritiousFoods Nutrient List:");
+			String msg = String.format("§n§7Nutrient                 Level              Rate");
+			sender.sendMessage(msg);
 			for (int i=0; i<nutrients.size(); i++) {
 				Nutrient nutrient = nutrients.get(i);
 				float level = nutrientPlayer.getNutrientLevel(i);
-				sender.sendMessage(nutrient.getName()+": "+Float.toString(level)+"/"+Float.toString(nutrient.getMaxLevel()));
+				msg = String.format("§8%-20s %5.1f/%-5.1f %15.5f", nutrient.getName(), level, nutrient.getMaxLevel(), nutrient.nutrientLevelDecrement(level));
+				sender.sendMessage(msg);
 			}
 			return true;
 		} //If this has happened the function will return true. 

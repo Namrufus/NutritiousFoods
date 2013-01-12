@@ -46,27 +46,19 @@ public class NutrientBuff {
 		else
 			magnitude = (float)(cutoff-nutrientLevel)/(float)cutoff;
 		
-		System.out.print("magnitude = " + Float.toString(magnitude));
-		
 		// if the nutrient level is outside the cutoff, return with no effect
 		if (magnitude < 0.0)
 			return null;
 		
-		System.out.println("hoopa " + Float.toString(magnitude*chanceMax));
-		
 		// frequency depends linearly on magnitude
 		if (Math.random() > magnitude*chanceMax)
 			return null;
-		
-		System.out.println("poopa");
 		
 		// intensity also is linear with magnitude
 		level = 1 + (int)(((float)(intensityMax-1))*magnitude);
 		
 		// duration is also linear with magnitude
 		duration = (float)durationMax*magnitude;
-		
-		System.out.println("0_-??? " + effectType.toString() + ", " + Float.toString(duration) + ", " + Integer.toString(level));
 		
 		// convert duration to millseconds and return potion effect
 		return new PotionEffect(effectType, (int)duration, level);

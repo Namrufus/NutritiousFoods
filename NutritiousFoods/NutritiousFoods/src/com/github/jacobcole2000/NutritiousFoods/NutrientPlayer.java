@@ -30,7 +30,10 @@ public class NutrientPlayer {
 		this.plugin = plugin;
 		this.lastInteractMaterial = Material.AIR;
 		
-		this.prevSatLevel = player.getSaturation();
+		if (player != null)
+			this.prevSatLevel = player.getSaturation();
+		else
+			this.prevSatLevel = 0.0f;
 		this.leftoverSatLevel = 0.0f;
 		
 		
@@ -68,7 +71,7 @@ public class NutrientPlayer {
 		}
 	}
 	
-	// accesors and mutators
+	// acessors and mutators
 	// ------------------------------------ //
 	
 	public Player getPlayer() {
@@ -77,10 +80,16 @@ public class NutrientPlayer {
 	
 	public void setPlayer(Player player) {
 		this.player = player;
+		if (player != null)
+			this.prevSatLevel = player.getSaturation();
 	}
 	
 	float getNutrientLevel(int index) {
 		return nutrientLevels[index];
+	}
+	
+	void setNutrientLevel(int index, float value) {
+		nutrientLevels[index] = value;
 	}
 	
 	void addNutrientLevel(Nutrient nutrient, float amount) {
@@ -113,5 +122,19 @@ public class NutrientPlayer {
 	
 	public void setLastInteractMaterial(Material mat) {
 		lastInteractMaterial = mat;
+	}
+	
+	public String dehydrate(String name) {
+		String line = "";
+		line += name + "=";
+		for (int i=0; i<nutrientLevels.length; i++) {
+			line += plugin.getNutrients().get(i).getName();
+			line += ":";
+			line += Float.toString(nutrientLevels[i]);
+			if (i!=nutrientLevels.length-1)
+				line += ",";
+		}
+		line += "\n";
+		return line;
 	}
 }
