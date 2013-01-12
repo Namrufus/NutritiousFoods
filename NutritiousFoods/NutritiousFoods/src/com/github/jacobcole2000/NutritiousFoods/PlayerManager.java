@@ -39,7 +39,13 @@ public class PlayerManager {
 		unloggedPlayers = new HashMap<String, NutrientPlayer>();
 	}
 	
+	// saving and loading just use flat files that are saved and loaded on enable and disable
+	// It could be changed to use a database and access as players login
+	// but that is might be overkill for this, (though the dataset might get large (to include all players that have ever logged in))
+	// which might be bad to keep in memory
+	// so a database might be necessary.
 	public void load() {
+		// TODO: refactor this into the NutrientPlayer dehydrate method or something.
 		BufferedReader inputStream = null;
 		try {
 			inputStream = new BufferedReader(new FileReader(filePath));
@@ -48,6 +54,8 @@ public class PlayerManager {
 			line = inputStream.readLine();
 			// get the version
 			int fileVersion = Integer.parseInt(line);
+			if (fileVersion != dataVersion)
+				plugin.getLogger().info("player data file format is old.");
 			
 			while (true) {
 				line = inputStream.readLine();

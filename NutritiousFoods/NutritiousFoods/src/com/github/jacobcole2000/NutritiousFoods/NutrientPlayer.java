@@ -12,7 +12,8 @@ public class NutrientPlayer {
 	// record of the player's nutrient levels
 	// parallel to the plugin's nutrient arraylist
 	private float[] nutrientLevels;
-	// link to the player
+	// link to the player -- THIS MAY BE NULL BY DESIGN
+	// probably need to change that ^^^
 	Player player;
 	// the plugin
 	NutritiousFoods plugin;
@@ -22,6 +23,7 @@ public class NutrientPlayer {
 	float leftoverSatLevel;
 	// store the last thing 'interacted' with in order to determine what food has been eatenized
 	private Material lastInteractMaterial;
+	private boolean verboseMode;
 	
 	// construct a player that has never logged in to the server before
 	// create new nutrient data
@@ -36,6 +38,7 @@ public class NutrientPlayer {
 			this.prevSatLevel = 0.0f;
 		this.leftoverSatLevel = 0.0f;
 		
+		verboseMode = false;
 		
 		ArrayList<Nutrient> nutrientDefs = plugin.getNutrients();
 		nutrientLevels = new float[nutrientDefs.size()];
@@ -45,7 +48,7 @@ public class NutrientPlayer {
 	
 	// update the stored saturation level
 	// this allows for the nutrition levels to go down with saturation decreases as well
-	// return value is the amount that the sturation decreased.
+	// return value is the amount that the saturation decreased.
 	public int updateSatLevel(float newLevel) {
 		// get the amount by which the saturation level has changed
 		float diff = leftoverSatLevel + newLevel - prevSatLevel;
@@ -66,14 +69,37 @@ public class NutrientPlayer {
 		ArrayList<NutrientBuff> buffs = nutrient.getBuffs();
 		for (NutrientBuff buff:buffs) {
 			PotionEffect effect = buff.getEffect(nutrientLevels[index]);
-			if (effect != null)
+			if (effect != null) {
 				effect.apply(player);
+				if (!buff.isMoreThan())
+					verboseMessage(effect.getType().getName() + " applied because of " + nutrient.getName() + " deficiency.");
+				else
+					verboseMessage(effect.getType().getName() + " applied because of " + nutrient.getName() + " excess.");
+			}
 		}
 	}
 	
-	// acessors and mutators
+	// ---------------------------------------//
+	// verbose mode
+	
+	public boolean inVerboseMode() {
+		return verboseMode;
+	}
+	
+	public void toggleVerboseMode() {
+		verboseMode = !verboseMode;
+	}
+	
+	public void verboseMessage(String msg) {
+		if (verboseMode)
+			player.sendMessage("§7[nfoods] "+msg);
+	}
+	
+	
+	// accessors and mutators
 	// ------------------------------------ //
 	
+
 	public Player getPlayer() {
 		return player;
 	}

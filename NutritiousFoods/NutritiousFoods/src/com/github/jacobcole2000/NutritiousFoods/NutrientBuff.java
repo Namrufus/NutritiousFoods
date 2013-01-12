@@ -1,6 +1,5 @@
 package com.github.jacobcole2000.NutritiousFoods;
 
-import org.bukkit.plugin.Plugin;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 
@@ -31,8 +30,20 @@ public class NutrientBuff {
 		this.durationMax = durationMax;
 	}
 	
-	// get an effect to apply to a player with the specified nutrient level. this is called every effectTick
-	// if there is to be no effect this EffectTick this will return null
+	public PotionEffectType getEffectType() {
+		return effectType;
+	}
+	
+	public boolean isMoreThan() {
+		return moreThan;
+	}
+	
+	public float getCutoff() {
+		return cutoff;
+	}
+	
+	// return an effect to apply to a player with the specified nutrient level. this is called every effectTick
+	// returns null if there is to be no effect
 	public PotionEffect getEffect(float nutrientLevel) {
 		float duration; // duration in seconds
 		int level; // potion level
@@ -42,15 +53,15 @@ public class NutrientBuff {
 		// (1.0 @ maxNutrientLevel and 0.0 @ cutoff) when the moreThan flag is set
 		float magnitude;
 		if (moreThan)
-			magnitude = (float)(nutrientLevel-nutrient.getMaxLevel())/(float)(cutoff-nutrient.getMaxLevel());
+			magnitude = (nutrientLevel - cutoff)/(nutrient.getMaxLevel()-cutoff);
 		else
-			magnitude = (float)(cutoff-nutrientLevel)/(float)cutoff;
+			magnitude = (cutoff-nutrientLevel)/cutoff;
 		
 		// if the nutrient level is outside the cutoff, return with no effect
 		if (magnitude < 0.0)
 			return null;
 		
-		// frequency depends linearly on magnitude
+		// frequency is linearly proportional with magnitude
 		if (Math.random() > magnitude*chanceMax)
 			return null;
 		
@@ -60,7 +71,7 @@ public class NutrientBuff {
 		// duration is also linear with magnitude
 		duration = (float)durationMax*magnitude;
 		
-		// convert duration to millseconds and return potion effect
+		// convert duration to milliseconds and return potion effect
 		return new PotionEffect(effectType, (int)duration, level);
 	}
 	

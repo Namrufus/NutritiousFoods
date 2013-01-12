@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Set;
 
+import org.apache.commons.lang.StringUtils;
 import org.bukkit.Material;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -20,13 +21,11 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitTask;
 
-// Nutritious Foods -- the Nutrients and Farming Bukkit Plugin!
+// Nutritious Foods -- the Nutrients Bukkit Plugin!
 // created Jan 2013 by Jacob Cole (aka Namrufus)
 
 // Adds depth to minecraft foods by applying good or bad potion effects if the player doesn't maintain healthy
-// nutrient levels by eating a variety of foods. Also adds realism to farming by allowing crops to grow even while chunks are unloaded.
-// Crop growth speeds can be dependent on conditions such as the biome, sunlight levels, soil conditions and more.
-// Fully customizable. Nutrient levels and effects as well as farm growth rates and conditions are fully specifiable. 
+// nutrient levels by eating a variety of foods.
 
 public final class NutritiousFoods extends JavaPlugin implements Listener {
 	// the time in seconds between effect ticks
@@ -50,6 +49,14 @@ public final class NutritiousFoods extends JavaPlugin implements Listener {
 		return nutrients;
 	}
 	
+	public Nutrient getNutrientByName(String name) {
+		for (Nutrient nutrient:nutrients) {
+			if (nutrient.getName().equals(name))
+				return nutrient;
+		}
+		return null;
+	}
+	
 	// --------------------------------------------- //
 	
 	@Override
@@ -57,18 +64,33 @@ public final class NutritiousFoods extends JavaPlugin implements Listener {
 		this.getConfig();
 		
 		// perform check for config file
-		//if (!this.getConfig().isSet("NutritiousFoods")) {
-		//	this.saveDefaultConfig();
-		//	this.getLogger().info("[NutritiousFoods] Config did not exist or was invalid, default config saved.");
-		//}
+		if (!this.getConfig().isSet("NutritiousFoods")) {
+			this.saveDefaultConfig();
+			this.getLogger().info("Config did not exist or was invalid, default config saved.");
+		}
 		
 		int expectedPlayerCap = this.getConfig().getInt("NutritiousFoods.expectedPlayerCap");
 		effectTickPeriod = this.getConfig().getLong("NutritiousFoods.effectTickPeriod");
 	
+		// load modified food levels from config.yml
+		Set<String> foodKeys = this.getConfig().getConfigurationSection("NutritiousFoods.foods").getKeys(false);
+		foodMap = new HashMap<Material,NutrientFood>();
+		for (String keyStr:foodKeys) {
+			String name = keyStr;
+			Material material = Material.getMaterial(name);
+			if (material == null) {
+				continue;
+			}
+			keyStr = "NutritiousFoods.foods."+keyStr;
+			int modifiedLevel = this.getConfig().getInt(keyStr);
+			getLogger().info(name + " " + Integer.toString(modifiedLevel));
+			foodMap.put(material, new NutrientFood(modifiedLevel));
+		}
+
+		
 		// load nutrition list from config.yml
 		Set<String> nutrientKeys = this.getConfig().getConfigurationSection("NutritiousFoods.nutrients").getKeys(false);
 		nutrients = new ArrayList<Nutrient>(nutrientKeys.size());
-		foodMap = new HashMap<Material,NutrientFood>();
 		int index = 0;
 		for (String keyStr:nutrientKeys) {
 			String name = keyStr;
@@ -214,9 +236,23 @@ public final class NutritiousFoods extends JavaPlugin implements Listener {
 			nutrientPlayer.decNutrientLevel(i,nutrient);
 		}
 		
-		// if the thing eaten is a valid material, add any nutrient amounts
-		if (foodMap.containsKey(nutrientPlayer.getLastInteractMaterial())) {
-			foodMap.get(nutrientPlayer.getLastInteractMaterial()).addToNutrients(nutrientPlayer);
+		// if our hunger is going up and if the thing eaten is a valid material, add any nutrient amounts
+		// also modifiy hunger level increase if needed.
+		int hungerDifference = event.getFoodLevel() - player.getFoodLevel();
+		if (hungerDifference > 0 && foodMap.containsKey(nutrientPlayer.getLastInteractMaterial())) {
+			NutrientFood nFood = foodMap.get(nutrientPlayer.getLastInteractMaterial());
+			nFood.addToNutrients(nutrientPlayer);
+			if (nFood.doesModifyHungerLevel()) {
+				int newLevel = nutrientPlayer.getPlayer().getFoodLevel() + nFood.getHungerLevel();
+				if (newLevel > 20)
+					newLevel = 20;
+				if (newLevel < 0)
+					newLevel = 0;
+				event.setFoodLevel(newLevel);
+			}
+		}
+		else {
+			nutrientPlayer.verboseMessage("Food change event, 1 nutrient level lost");
 		}
 
 		// run a task next tick to handle saturation changes
@@ -237,8 +273,12 @@ public final class NutritiousFoods extends JavaPlugin implements Listener {
 			return;
 		NutrientPlayer nPlayer = playerManager.get(playerName);
 		int satLevelsLost = -nPlayer.updateSatLevel(nPlayer.getPlayer().getSaturation());
+		
 		if (satLevelsLost <= 0)
 			return;
+		
+		nPlayer.verboseMessage("§7Saturation change event, saturation = " + Double.toString(nPlayer.getPlayer().getSaturation()));
+		nPlayer.verboseMessage("§7Saturation Levels lost (nutrient levels lost) = " + Integer.toString(satLevelsLost));
 		
 		for (int i = 0; i < satLevelsLost; i++) {
 			for (int j = 0; j<nutrients.size(); j++) {
@@ -263,21 +303,12 @@ public final class NutritiousFoods extends JavaPlugin implements Listener {
 	
 	@EventHandler
 	public void onPlayerJoin(PlayerJoinEvent event) {
-		System.out.println("player added.");
 		playerManager.addPlayer(event.getPlayer().getName(), event.getPlayer());
 	}
 	
 	@EventHandler
 	public void onPlayerQuit(PlayerQuitEvent event) {
 		playerManager.removePlayer(event.getPlayer());
-	}
-	
-	public Nutrient getNutrientByName(String name) {
-		for (Nutrient nutrient:nutrients) {
-			if (nutrient.getName().equals(name))
-				return nutrient;
-		}
-		return null;
 	}
 	
 	public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args){
@@ -289,7 +320,7 @@ public final class NutritiousFoods extends JavaPlugin implements Listener {
 			
 			NutrientPlayer nutrientPlayer = playerManager.get(sender.getName());
 			
-			String msg = String.format("§n§7Nutrient                 Level              Rate");
+			String msg = String.format("§7Nutrient                 Level              Rate");
 			sender.sendMessage(msg);
 			for (int i=0; i<nutrients.size(); i++) {
 				Nutrient nutrient = nutrients.get(i);
@@ -298,8 +329,85 @@ public final class NutritiousFoods extends JavaPlugin implements Listener {
 				sender.sendMessage(msg);
 			}
 			return true;
-		} //If this has happened the function will return true. 
-	        // If this hasn't happened the a value of false will be returned.
+		}
+		else if (cmd.getName().equalsIgnoreCase("nfinfo") || cmd.getName().equalsIgnoreCase("nfi")) {
+			// TODO: optimize this entire command, maybe construct description string 
+			
+			if (args.length < 1) {
+				sender.sendMessage("§7Please include the name or index of the desired nutrient.");
+				return true;
+			}
+			
+			String nName = args[0];
+			// lookup nutrients, might be too expensive
+			Nutrient nutrient = null;
+			for (Nutrient n : nutrients) {
+				if (n.getName().equals(nName)) {
+					nutrient = n;
+					break;
+				}
+			}
+			
+			if (nutrient == null) {
+				if (!StringUtils.isNumeric(nName))  {
+					sender.sendMessage("§7"+nName+" not a valid nutrient");
+					return true;
+				}
+				
+				int index = (int)Double.parseDouble(nName);
+				if (index < 0 || index >= nutrients.size()) {
+					sender.sendMessage("§7"+nName+" not a valid nutrient");
+					return true;
+				}
+				
+				nutrient = nutrients.get(index);
+				
+				if (nutrient == null) {
+					sender.sendMessage("§7"+nName+" not a valid nutrient");
+					return true;
+				}
+			}
+			
+			sender.sendMessage("§7Nutrient report: "+nutrient.getName());
+			sender.sendMessage("§8max level: "+Float.toString(nutrient.getMaxLevel()));
+			sender.sendMessage("§7§oFoods:");
+			// another inconveniently unwieldy method for getting all the foods
+			for (Material mat: foodMap.keySet()) {
+				NutrientFood nFood = foodMap.get(mat);
+				float amount = nFood.getAmount(nutrient);
+				if (amount > 0)
+					sender.sendMessage("§8"+mat.name()+" restores "+Float.toString(-amount));
+				else if (amount < 0)
+					sender.sendMessage("§8"+mat.name()+" depletes "+Float.toString(amount));
+			}
+
+			sender.sendMessage("§7§oEffects:");
+			for (NutrientBuff nBuff: nutrient.getBuffs()) {
+				if (!nBuff.isMoreThan())
+					sender.sendMessage("§8"+nBuff.getEffectType().getName()+" effect below level "+Float.toString(nBuff.getCutoff()));
+				else
+					sender.sendMessage("§8"+nBuff.getEffectType().getName()+" effect above level "+Float.toString(nBuff.getCutoff()));
+			}
+			
+			return true;
+		}
+		else if (cmd.getName().equalsIgnoreCase("nfverbose") || cmd.getName().equalsIgnoreCase("nfv")) {
+			if (! (sender instanceof Player)) {
+				sender.sendMessage("This is a player command.");
+				return false;
+			}
+			
+			NutrientPlayer nutrientPlayer = playerManager.get(sender.getName());
+			
+			nutrientPlayer.toggleVerboseMode();
+			
+			if (nutrientPlayer.inVerboseMode())
+				sender.sendMessage("§7Verbose Mode Enabled");
+			else
+				sender.sendMessage("§7Verbose Mode Disabled");
+			
+			return true;
+		}
 		return false; 
 	}
 }

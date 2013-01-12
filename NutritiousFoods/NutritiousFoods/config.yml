@@ -1,14 +1,18 @@
 NutritiousFoods:
   exists: true
+  playerDataFilePath: plugins/NutritiousFoods/playerdata.dat
   effectTickPeriod: 200
   expectedPlayerCap: 10
+  
+  foods:
+    CARROT_ITEM: 2
 
   nutrients:
     Vitamin-A:
       maxLevel: 128.0
-      maxDecRate: 30.0
+      maxDecRate: 0.5
       exponant: 2.0
-      spawnLevel: 32.0
+      spawnLevel: 96.0
       foods:
         CARROT_ITEM: 1.0
         GOLDEN_CARROT: 3.0
@@ -18,7 +22,7 @@ NutritiousFoods:
           moreThan: false
           cutoff: 64.0
           chanceMax: 0.5
-          intensityMax: 2
+          intensityMax: 1
           durationMax: 200
 
         e2:
@@ -26,23 +30,70 @@ NutritiousFoods:
           moreThan: false
           cutoff: 64.0
           chanceMax: 1.0
-          intensityMax: 4
+          intensityMax: 3
           durationMax: 200
 
     Vitamin-B:
       maxLevel: 128.0
-      maxDecRate: 1.0
+      maxDecRate: 0.25
       exponant: 2.0
       spawnLevel: 96
       foods:
         BREAD: 3.0
+        CARROT_ITEM: 1.0
+      effects:
+        e1:
+          effect: HUNGER
+          moreThan: false
+          cutoff: 64.0
+          chanceMax: 0.5
+          intensityMax: 5
+          durationMax: 200
+
 
     Vitamin-C:
       maxLevel: 128.0
-      maxDecRate: 1.0
+      maxDecRate: 0.5
       exponant: 2.0
       spawnLevel: 96
       foods:
         POTATO_ITEM: 1.0
         POISONOUS_POTATO: 10.0
         BAKED_POTATO: 1.0
+      effects:
+        e1:
+          effect: CONFUSION
+          moreThan: false
+          cutoff: 64.0
+          chanceMax: 1.0
+          intensityMax: 10
+          durationMax: 200
+
+        e2:
+          effect: SLOW_DIGGING
+          moreThan: false
+          cutoff: 64.0
+          chanceMax: 0.5
+          intensityMax: 4
+          durationMax: 200
+
+    Fat:
+      maxLevel: 128.0
+      maxDecRate: 1.0
+      exponant: 2.0
+      spawnLevel: 64
+      foods:
+        RAW_BEEF: 3.0
+        PORK: 3.0
+        GRILLED_PORK: 3.0
+        COOKED_BEEF: 3.0
+        RAW_CHICKEN: 1.0
+        COOKED_CHICKEN: 1.0
+      effects:
+        e1:
+          effect: SLOW
+          moreThan: true
+          cutoff: 64.0
+          chanceMax: 1.0
+          intensityMax: 4.0
+          durationMax: 200

@@ -24,11 +24,13 @@ public class Nutrient {
 		this.nutrientBuffs = new ArrayList<NutrientBuff>();
 	}
 	
-	// decrement level (this is called whenever the player loses a
+	// decrement level based on the current level (this is called whenever the player loses a
 	// hunger level)
 	public float nutrientLevelDecrement(float level) {
 		return b*(float)Math.pow(level, e);
 	}
+	
+	///----------------------------///
 	
 	public void addBuff(NutrientBuff nutrientBuff) {
 		nutrientBuffs.add(nutrientBuff);
