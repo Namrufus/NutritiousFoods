@@ -106,7 +106,7 @@ public final class NutritiousFoods extends JavaPlugin implements Listener {
 			PlayerData pData = players.get(sender.getName());
 			
 			Map<Nutrient, Integer> nutrientLevels = pData.getNutrientLevels();
-			for (Nutrient nutrient: nutrientLevels.keySet()) {
+			for (Nutrient nutrient: Config.nutrients) {
 				int level = nutrientLevels.get(nutrient);
 				msg = String.format("§7%s :", nutrient.getName());
 				sender.sendMessage(msg);
