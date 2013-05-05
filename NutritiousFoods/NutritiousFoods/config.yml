@@ -5,8 +5,8 @@ nutritious-foods:
  #maximum value of this is about 80
  max-nutrient-level: 80
  start-nutrient-level: 60
- nutrient-levels-per-hour: 600.0
- nutrient-levels-per-hour-slow: 3.0
+ nutrient-levels-per-hour: 6.0
+ nutrient-levels-per-hour-slow: 2.0
 
  hunger-level-decrease-chance: 0.333
 
