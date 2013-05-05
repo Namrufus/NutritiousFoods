@@ -3,21 +3,7 @@ main: com.github.jacobcole2000.NutritiousFoods.NutritiousFoods
 version: 0.0.1
 
 commands:
- nfcheck:
-  description: check player nutrition levels
-  usage: /<command>
- nfc:
-  description: check player nutrition levels
-  usage: /<command>
- nfinfo:
-  description: get information about a specific nutrient
-  usage: /<command> [nutrient]
- nfi:
-  description: get information about a specific nutrient
-  usage: /<command> [nutrient or nutrient index]
- nfverbose:
-  description: toggle verbose mode
-  usage: /<command>
- nfv:
-  description: toggle verbose mode
-  usage: /<command>
+  nfc:
+    description: NutritiousFoods Check. Check nutrient levels
+    usage: /nfc
+    permission-message: You don't have <permission>

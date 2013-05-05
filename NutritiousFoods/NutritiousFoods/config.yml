@@ -1,99 +1,156 @@
-NutritiousFoods:
-  exists: true
-  playerDataFilePath: plugins/NutritiousFoods/playerdata.dat
-  effectTickPeriod: 200
-  expectedPlayerCap: 10
+nutritious-foods:
+ file-path: plugins/NutritiousFoods/data.yml
+ effect-tick-period: 600
+ 
+ #maximum value of this is about 80
+ max-nutrient-level: 80
+ start-nutrient-level: 60
+ nutrient-levels-per-hour: 600.0
+ nutrient-levels-per-hour-slow: 3.0
+
+ hunger-level-decrease-chance: 0.333
+
+ nutrients:
+  Carbs:
+   effects:
+    SLOW_DIGGING:
+     level-minimum: 1
+     level-variance: 2
+     duration-minimum: 0.25
+     duration-variance: 0.75
+
+    CONFUSION:
+     level-minimum: 1
+     level-variance: 0
+     duration-minimum: 0.05
+     duration-variance: 0.95
+
+  Vitamins:
+   effects:
+    SLOW:
+     level-minimum: 1
+     level-variance: 2
+     duration-minimum: 0.25
+     duration-variance: 0.75
+
+    BLINDNESS:
+     level-minimum: 1
+     level-variance: 0
+     duration-minimumn: 0.05
+     duration-variance: 0.95
+
+  Protein:
+   effects:
+    WEAKNESS:
+     level-minimum: 1
+     level-variance: 2
+     duration-minimum: 0.10
+     duration-variance: 0.90
+
+    HUNGER:
+     level-minimum: 1
+     level-variance: 1
+     duration-minimum: 0.5
+     duration-variance: 0.5
+ 
+ foods:
+  BREAD:
+   hunger: 4
+   saturation: 1.0
+   Carbs: 9
+
+  CARROT_ITEM:
+   hunger: 1
+   saturation: 0.5
+   Vitamins: 2
+   Protein: 1
+
+  POTATO_ITEM:
+   hunger: 1
+   saturation: 3.0
+   Carbs: 1
+   Vitamins: 1
+   Protein: 1
+
+  RAW_FISH:
+   hunger: 0
+   saturation: 0.0
+   Protein: 1
+
+  COOKED_FISH:
+   hunger: 1
+   saturation: 1.0
+   Protein: 1
+
+  PORK:
+   hunger: 0
+   saturation: 0.0
+   Vitamins: 2
+   Protein: 3
+
+  GRILLED_PORK:
+   hunger: 2
+   saturation: 1.0
+   Vitamins: 2
+   Protein: 3
+
+  RAW_BEEF:
+   hunger: 0
+   saturation: 0
+   Protein: 4
+
+  COOKED_BEEF:
+   hunger: 2
+   saturation: 5.0
+   Protein: 4
+
+  MILK_BUCKET:
+   hunger: 1
+   saturation: 2.0
+   Vitamins: 2
+
+  ROTTEN_FLESH:
+   hunger: 1.0
+   saturation: -1.0
+   Vitamins: -3
   
-  foods:
-    CARROT_ITEM: 2
+  SPIDER_EYE:
+   hunger: 1.0
+   saturation: -1.0
+   Carbs: -3
 
-  nutrients:
-    Vitamin-A:
-      maxLevel: 128.0
-      maxDecRate: 0.5
-      exponant: 2.0
-      spawnLevel: 96.0
-      foods:
-        CARROT_ITEM: 1.0
-        GOLDEN_CARROT: 3.0
-      effects:
-        e1:
-          effect: BLINDNESS
-          moreThan: false
-          cutoff: 64.0
-          chanceMax: 0.5
-          intensityMax: 1
-          durationMax: 200
+  APPLE:
+   hunger: 1
+   saturation: 2.0
 
-        e2:
-          effect: WEAKNESS
-          moreThan: false
-          cutoff: 64.0
-          chanceMax: 1.0
-          intensityMax: 3
-          durationMax: 200
+  GOLDEN_APPLE:
+   hunger: 0
+   saturation: 2.0
 
-    Vitamin-B:
-      maxLevel: 128.0
-      maxDecRate: 0.25
-      exponant: 2.0
-      spawnLevel: 96
-      foods:
-        BREAD: 3.0
-        CARROT_ITEM: 1.0
-      effects:
-        e1:
-          effect: HUNGER
-          moreThan: false
-          cutoff: 64.0
-          chanceMax: 0.5
-          intensityMax: 5
-          durationMax: 200
+  PUMPKIN_PIE:
+   hunger: 3
+   saturation: 3.0
 
+  MELON:
+   hunger: 1
+   saturation: 0.0
 
-    Vitamin-C:
-      maxLevel: 128.0
-      maxDecRate: 0.5
-      exponant: 2.0
-      spawnLevel: 96
-      foods:
-        POTATO_ITEM: 1.0
-        POISONOUS_POTATO: 10.0
-        BAKED_POTATO: 1.0
-      effects:
-        e1:
-          effect: CONFUSION
-          moreThan: false
-          cutoff: 64.0
-          chanceMax: 1.0
-          intensityMax: 10
-          durationMax: 200
+  CAKE:
+   hunger: 3
+   saturation: 6.0
 
-        e2:
-          effect: SLOW_DIGGING
-          moreThan: false
-          cutoff: 64.0
-          chanceMax: 0.5
-          intensityMax: 4
-          durationMax: 200
+  COOKIE:
+   hunger: 1
+   saturation: 0.0
 
-    Fat:
-      maxLevel: 128.0
-      maxDecRate: 1.0
-      exponant: 2.0
-      spawnLevel: 64
-      foods:
-        RAW_BEEF: 3.0
-        PORK: 3.0
-        GRILLED_PORK: 3.0
-        COOKED_BEEF: 3.0
-        RAW_CHICKEN: 1.0
-        COOKED_CHICKEN: 1.0
-      effects:
-        e1:
-          effect: SLOW
-          moreThan: true
-          cutoff: 64.0
-          chanceMax: 1.0
-          intensityMax: 4.0
-          durationMax: 200
+  RAW_CHICKEN:
+   hunger: 0
+   saturation: 0.0
+
+  COOKED_CHICKEN:
+   hunger: 1
+   saturation: 1.0
+  
+  MUSHROOM_SOUP:
+   hunger: 3.0
+   saturation: 2.0
