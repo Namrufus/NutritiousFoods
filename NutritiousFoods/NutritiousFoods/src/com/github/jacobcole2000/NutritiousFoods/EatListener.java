@@ -32,28 +32,36 @@ public class EatListener implements Listener {
 			return;
 		}
 		
-		playerData.setEatenFood(foodMaterial);
-		
 		Food nFood = Config.foods.get(foodMaterial);
 		for (Food.NutrientRestore nutrientRestore : nFood.nutrientRestores) {
 			playerData.addNutrientLevel(nutrientRestore.nutrient, nutrientRestore.amount);
 		}
 
-		int newLevel = player.getFoodLevel() + nFood.hunger;
-		if (newLevel > 20)
-			newLevel = 20;
-		else if (newLevel < 0)
-			newLevel = 0;
-		player.setFoodLevel(newLevel);
+		if (nFood.setsHunger) {
+			// remember the food so that the food level event may be canceled later
+			playerData.setEatenFood(foodMaterial);
+			
+			// set hunger and saturation level
+			int newLevel = player.getFoodLevel() + nFood.hunger;
+			if (newLevel > 20)
+				newLevel = 20;
+			else if (newLevel < 0)
+				newLevel = 0;
+			player.setFoodLevel(newLevel);
+			
+			double newSat = player.getSaturation() + nFood.saturation;
+			if (newSat > newLevel)
+				newSat = (double)newLevel;
+			else if (newSat < 0.0)
+				newSat = 0.0;
+			player.setSaturation((float)newSat);
+		}
+		else
+			// no need to cancel the food level change event
+			playerData.setEatenFood(null);
+			
 		
-		double newSat = player.getSaturation() + nFood.saturation;
-		if (newSat > newLevel)
-			newSat = (double)newLevel;
-		else if (newSat < 0.0)
-			newSat = 0.0;
-		player.setSaturation((float)newSat);
 		
-		// remember the food so that the food level event may be canceled later
 	}
 	
 	@EventHandler 
@@ -66,8 +74,8 @@ public class EatListener implements Listener {
 		if (event.getFoodLevel() < ((Player)event.getEntity()).getFoodLevel()) {
 			if (Math.random() < Config.hungerLevelDecreaseChance) {
 				event.setCancelled(true);
-				return;
 			}
+			return;
 		}
 			
 		// if the player has just eaten a registered food and the food level is rising, then

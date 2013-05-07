@@ -12,6 +12,7 @@ import org.bukkit.configuration.ConfigurationSection;
 // levels on nutrients for a player
 
 public class Food {
+	public boolean setsHunger;
 	public int hunger;
 	public double saturation;
 	public List<NutrientRestore> nutrientRestores;
@@ -26,8 +27,18 @@ public class Food {
 	}
 	
 	public Food(ConfigurationSection config, List<Nutrient> nutrients) {
-		hunger = config.getInt("hunger");
-		saturation = config.getDouble("saturation");
+		hunger = 0;
+		saturation = 0.0;
+		setsHunger = false;
+		
+		if (config.isSet("hunger")) {
+			setsHunger = true;
+			hunger = config.getInt("hunger");
+		}
+		if (config.isSet("saturation")) {
+			setsHunger = true;
+			saturation = config.getDouble("saturation");
+		}
 		
 		nutrientRestores = new LinkedList<NutrientRestore>();
 		
