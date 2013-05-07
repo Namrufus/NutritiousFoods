@@ -41,10 +41,7 @@ public class NutrientDrainManager {
 	}
 	
 	public void onNutrientTick(boolean slow) {
-		for (Player player : plugin.getServer().getOnlinePlayers()) {
-			if (!plugin.players.containsKey(player.getName()))
-				plugin.players.put(player.getName(), new PlayerData());
-			
+		for (Player player : plugin.getServer().getOnlinePlayers()) {	
 			PlayerData playerData = plugin.players.get(player.getName());
 			
 			playerData.decrementNutrientLevels(slow);

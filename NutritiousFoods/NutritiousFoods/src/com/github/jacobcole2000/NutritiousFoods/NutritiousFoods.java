@@ -14,6 +14,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerLoginEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -64,6 +65,14 @@ public final class NutritiousFoods extends JavaPlugin implements Listener {
 	    
 		// register events
 		getServer().getPluginManager().registerEvents(eatListener, this);
+		getServer().getPluginManager().registerEvents(this, this);
+	}
+	
+	@EventHandler
+	public void onPlayerLoginEvent(PlayerLoginEvent event) {
+		// if the player is not recognized, create a new player data entry for that player
+		if (!players.containsKey(event.getPlayer().getName()))
+			players.put(event.getPlayer().getName(), new PlayerData());
 	}
 	
 	// stop effect tick and nullify all references
@@ -104,11 +113,6 @@ public final class NutritiousFoods extends JavaPlugin implements Listener {
 			sender.sendMessage(msg);
 			
 			PlayerData pData = players.get(sender.getName());
-			if (pData == null) {
-				pData = new PlayerData();
-				players.put(sender.getName(), pData);
-			}
-				
 			
 			Map<Nutrient, Integer> nutrientLevels = pData.getNutrientLevels();
 			for (Nutrient nutrient: Config.nutrients) {

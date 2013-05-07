@@ -25,8 +25,6 @@ public class EffectManager {
 	
 	private void onEffectTick() {
 		for (Player player : plugin.getServer().getOnlinePlayers()) {
-			if (!plugin.players.containsKey(player.getName()))
-				plugin.players.put(player.getName(), new PlayerData());
 			
 			PlayerData playerData = plugin.players.get(player.getName());
 			
