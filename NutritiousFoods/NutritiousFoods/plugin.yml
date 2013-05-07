@@ -10,3 +10,12 @@ commands:
   nfi:
     description: NutritiousFoods Info. Check nutrient-level restoration of a food item in hand.
     usage: /nfi
+
+permissions:
+  NutritiousFoods.*:
+    description: Gives access to all NutrititiousFoods commands
+    children:
+      NutritiousFoods.uneffected: true
+  NutritiousFoods.uneffected:
+    description: Character is uneffected by nutrition effects
+    default: op
