@@ -15,7 +15,10 @@ public class Config {
 	
 	public static int maxNutrientLevel;
 	public static int startNutrientLevel;
+	
+	public static double nutrientLevelsPerHour;
 	public static long nutrientDecrementPeriod;
+	public static double nutrientLevelsPerHourSlow;
 	public static long nutrientSlowDecrementPeriod;
 	
 	public static double hungerLevelDecreaseChance;
@@ -30,9 +33,9 @@ public class Config {
 		
 		maxNutrientLevel = config.getInt("max-nutrient-level");
 		startNutrientLevel = config.getInt("start-nutrient-level");
-		double nutrientLevelsPerHour = config.getDouble("nutrient-levels-per-hour");
+		nutrientLevelsPerHour = config.getDouble("nutrient-levels-per-hour");
 		nutrientDecrementPeriod = (long)((20*60*60/*ticks per hour*/)/nutrientLevelsPerHour); /*ticks per nutrient level*/
-		double nutrientLevelsPerHourSlow = config.getDouble("nutrient-levels-per-hour-slow");
+		nutrientLevelsPerHourSlow = config.getDouble("nutrient-levels-per-hour-slow");
 		nutrientSlowDecrementPeriod = (long)((20*60*60/*ticks per hour*/)/nutrientLevelsPerHourSlow); /*ticks per nutrient level*/
 		
 		hungerLevelDecreaseChance = config.getDouble("hunger-level-decrease-chance");

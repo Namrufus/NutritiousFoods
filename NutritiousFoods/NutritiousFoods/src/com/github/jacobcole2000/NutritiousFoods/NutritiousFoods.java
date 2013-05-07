@@ -138,9 +138,9 @@ public final class NutritiousFoods extends JavaPlugin implements Listener {
 					
 					int nutrientsPerHour;
 					if (level > Config.maxNutrientLevel / 2)
-						nutrientsPerHour = (int)((20.0 * 60.0 * 60.0/*ticks per hour*/) / (double)Config.nutrientDecrementPeriod);
+						nutrientsPerHour = (int)Math.ceil(Config.nutrientLevelsPerHour);
 					else
-						nutrientsPerHour = (int)((20.0 * 60.0 * 60.0/*ticks per hour*/) / (double)Config.nutrientSlowDecrementPeriod);
+						nutrientsPerHour = (int)Math.ceil(Config.nutrientLevelsPerHourSlow);
 					if (i==0 || i==Config.maxNutrientLevel-1 || i==Config.maxNutrientLevel/2) {
 						if (i <= level && i >= level - nutrientsPerHour)
 							msg += ";";
