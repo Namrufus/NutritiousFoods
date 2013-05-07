@@ -109,7 +109,7 @@ public final class NutritiousFoods extends JavaPlugin implements Listener {
 				return false;
 			}
 			
-			String msg = String.format("§7Nutrients");
+			String msg = String.format("§7[Nutritious Foods]");
 			sender.sendMessage(msg);
 			
 			PlayerData pData = players.get(sender.getName());
@@ -117,7 +117,7 @@ public final class NutritiousFoods extends JavaPlugin implements Listener {
 			Map<Nutrient, Integer> nutrientLevels = pData.getNutrientLevels();
 			for (Nutrient nutrient: Config.nutrients) {
 				int level = nutrientLevels.get(nutrient);
-				msg = String.format("§7%s :", nutrient.getName());
+				msg = String.format("§8%s :", nutrient.getName());
 				sender.sendMessage(msg);
 				msg = "§c"/*red*/;
 				for (int i=0; i<Config.maxNutrientLevel; i++) {
@@ -159,9 +159,21 @@ public final class NutritiousFoods extends JavaPlugin implements Listener {
 			}
 		}
 		else if (cmd.getName().equalsIgnoreCase("nfinfo") || cmd.getName().equalsIgnoreCase("nfi")) {
-			// TODO: optimize this entire command, maybe construct description string 
+			if (! (sender instanceof Player)) {
+				sender.sendMessage("This is a player command.");
+				return false;
+			}
+			Player player = (Player)sender;
+			Material handMaterial = player.getItemInHand().getType();
+			Food food = Config.foods.get(handMaterial);
 			
-			sender.sendMessage("§7Nutrient Info: ");
+			if (food == null || food.nutrientRestores.isEmpty())
+				return true;
+						
+			sender.sendMessage("§7[Nutritious Foods] "+handMaterial.name()+":");
+			for (Food.NutrientRestore restore : food.nutrientRestores) {
+				sender.sendMessage("§8"+restore.nutrient.getName()+": "+restore.amount);
+			}
 			
 			return true;
 		}

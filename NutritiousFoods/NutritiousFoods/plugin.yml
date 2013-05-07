@@ -6,4 +6,7 @@ commands:
   nfc:
     description: NutritiousFoods Check. Check nutrient levels
     usage: /nfc
-    permission-message: You don't have <permission>
+
+  nfi:
+    description: NutritiousFoods Info. Check nutrient-level restoration of a food item in hand.
+    usage: /nfi
