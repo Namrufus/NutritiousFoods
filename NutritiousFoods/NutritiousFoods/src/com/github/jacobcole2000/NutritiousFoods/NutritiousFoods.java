@@ -117,8 +117,7 @@ public final class NutritiousFoods extends JavaPlugin implements Listener {
 			Map<Nutrient, Integer> nutrientLevels = pData.getNutrientLevels();
 			for (Nutrient nutrient: Config.nutrients) {
 				int level = nutrientLevels.get(nutrient);
-				msg = String.format("§8%s :", nutrient.getName());
-				sender.sendMessage(msg);
+				
 				msg = "§c"/*red*/;
 				for (int i=0; i<Config.maxNutrientLevel; i++) {
 					if (i < level+1) {
@@ -155,6 +154,7 @@ public final class NutritiousFoods extends JavaPlugin implements Listener {
 							msg+=".";
 					}
 				}
+				msg += "§7 " + nutrient.getName();
 				sender.sendMessage(msg);
 			}
 		}
